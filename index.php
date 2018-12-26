@@ -5,27 +5,32 @@
  * 说明: [?:缓存, ??:不缓存, 123,456:文件名, .css:后缀]
  * 处理: 合并, 缓存, 压缩
  * 作者: http://vtens.com
- * 时间: 2018-12-19
+ * 时间: 2018-12-25
  */
 $c = __DIR__ . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR; //缓存目录
-$q = explode('.', strtolower(strip_tags($_SERVER['QUERY_STRING']))); //获取后缀数组
+$que = strip_tags($_SERVER['QUERY_STRING']);
+$loc = strripos($que, '.');
+$q[] = substr($que, 0, $loc);
+$q[] = substr($que, $loc);
 
 //初级处理
-if(count($q) != 2) die('suffix error');
+if(strlen($q[0]) < 2)die('suffix error');
 $cache = $q[0][0] !== '?' ? true : false;
 $q[0] = $cache ? $q[0] : substr($q[0],1);
 
 //后缀处理
-switch($q[1] = '.' . $q[1])
+switch($q[1])
 {
     case '.js':
-        $type = 'application/javascript';
+    $type = 'application/javascript';
     break;
-    case '.css':
-        $type = 'text/css';
+    
+	case '.css':
+    $type = 'text/css';
     break;
-    default:
-        die('no suffix');
+    
+	default:
+    die('no suffix');
 }
 header("Content-Type:{$type};charset=utf-8");
 
@@ -37,7 +42,6 @@ if(is_file($file) && $cache)
 }else{
     //字符处理
     $q[0] = array_unique(explode(',', $q[0]));
-    //合并代码
     $data = '';
     foreach($q[0] as $k => $v)
 	{
@@ -48,7 +52,7 @@ if(is_file($file) && $cache)
             unset($q[0][$k]);
         }
     }
-    if(!$data) die('no files'); //bug处理(都没有直接退出!)
+    if(!$data)die('no files'); //bug处理(都没有直接退出!)
 
     //压缩代码
     if($q[1] == '.css')
